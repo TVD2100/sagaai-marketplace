@@ -1,0 +1,48 @@
+{
+  "author": {
+    "en": "SagaAI",
+    "ru": "SagaAI",
+    "zh-CN": "SagaAI"
+  },
+  "description": {
+    "en": "Builds and populates RAG knowledge bases through the platform API: chunking, embeddings, indexing, re-indexing and cleanup, with a ready-to-run helper script.",
+    "ru": "Создаёт и наполняет базы знаний RAG через API платформы: разбиение на чанки, эмбеддинги, индексация, переиндексация и очистка; включает готовый скрипт-помощник.",
+    "zh-CN": "通过平台 API 构建并填充 RAG 知识库：分块、嵌入、索引、重建索引与清理，并附带可直接运行的辅助脚本。"
+  },
+  "files": {
+    "SKILL.md": "1766a66e6c298e234dd4a7deae475d9c8b0bff4e36475f31bf8d4c4a1463d687",
+    "scripts/build_base.py": "7ec25e194676834f0d3ea5555a1208e7be9652639f1653ecb38c33c0d25d81da"
+  },
+  "icon": "📚",
+  "id": "rag_base_creator",
+  "license": {
+    "acceptance_required": false,
+    "spdx": "PolyForm-Noncommercial-1.0.0"
+  },
+  "name": {
+    "en": "RAG Base Creator",
+    "ru": "Создание баз RAG",
+    "zh-CN": "RAG 知识库创建器"
+  },
+  "package": {
+    "sha256": "4365c5e261c97901b3c02de2624dc9c05f29dda34bfebecf544b946d300b48a7",
+    "size": 12104,
+    "url": "skills/rag_base_creator/1.0.0/package.tar.gz"
+  },
+  "permissions": {
+    "executes_code": true
+  },
+  "platform": {
+    "max": null,
+    "min": "2.18.0"
+  },
+  "requires_tools": [],
+  "schema": "sagaai.marketplace.entity/1",
+  "tags": [
+    "rag",
+    "knowledge base",
+    "indexing"
+  ],
+  "type": "skill",
+  "version": "1.0.0"
+}
