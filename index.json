@@ -1,0 +1,67 @@
+{
+  "channel": "main",
+  "entities": [
+    {
+      "author": {
+        "en": "SagaAI",
+        "ru": "SagaAI",
+        "zh-CN": "SagaAI"
+      },
+      "description": {
+        "en": "Official GitHub MCP server: repositories, issues, pull requests, code search. Requires a fine-grained personal access token.",
+        "ru": "Официальный GitHub MCP-сервер: репозитории, issues, пул-реквесты, поиск кода. Требует fine-grained Personal Access Token.",
+        "zh-CN": "GitHub 官方 MCP 服务器：仓库、议题、拉取请求与代码搜索。需要细粒度个人访问令牌。"
+      },
+      "icon": "🐙",
+      "id": "github_mcp",
+      "license": {
+        "acceptance_required": false,
+        "spdx": "PolyForm-Noncommercial-1.0.0"
+      },
+      "name": {
+        "en": "GitHub MCP (remote)",
+        "ru": "GitHub MCP (удалённый)",
+        "zh-CN": "GitHub MCP（远程）"
+      },
+      "path": "mcp/github_mcp/1.0.0",
+      "platform": {
+        "max": null,
+        "min": "2.18.0"
+      },
+      "type": "mcp",
+      "version": "1.0.0"
+    },
+    {
+      "author": {
+        "en": "SagaAI",
+        "ru": "SagaAI",
+        "zh-CN": "SagaAI"
+      },
+      "description": {
+        "en": "Grocery catalogue and recipes: product search, ingredients, nutrition, prices, basket. Public tools work without a token; a token opens personal data such as order history and favourite products.",
+        "ru": "Каталог и рецепты ВкусВилла: поиск товаров, состав, КБЖУ, цены, корзина. Публичные инструменты работают без токена; с токеном доступны персональные данные - история заказов, любимые продукты.",
+        "zh-CN": "Vkusvill 食品目录与食谱：商品搜索、配料、营养成分、价格与购物车。公开工具无需令牌；提供令牌后可访问订单历史、收藏商品等个人数据。"
+      },
+      "icon": "🛒",
+      "id": "vkusvill",
+      "license": {
+        "acceptance_required": false,
+        "spdx": "PolyForm-Noncommercial-1.0.0"
+      },
+      "name": {
+        "en": "Vkusvill",
+        "ru": "ВкусВилл",
+        "zh-CN": "Vkusvill"
+      },
+      "path": "mcp/vkusvill/1.0.0",
+      "platform": {
+        "max": null,
+        "min": "2.18.0"
+      },
+      "type": "mcp",
+      "version": "1.0.0"
+    }
+  ],
+  "schema": "sagaai.marketplace.index/1",
+  "updated_at": "2026-10-27T21:21:15Z"
+}

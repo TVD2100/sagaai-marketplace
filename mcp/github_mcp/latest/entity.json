@@ -1,0 +1,54 @@
+{
+  "author": {
+    "en": "SagaAI",
+    "ru": "SagaAI",
+    "zh-CN": "SagaAI"
+  },
+  "description": {
+    "en": "Official GitHub MCP server: repositories, issues, pull requests, code search. Requires a fine-grained personal access token.",
+    "ru": "Официальный GitHub MCP-сервер: репозитории, issues, пул-реквесты, поиск кода. Требует fine-grained Personal Access Token.",
+    "zh-CN": "GitHub 官方 MCP 服务器：仓库、议题、拉取请求与代码搜索。需要细粒度个人访问令牌。"
+  },
+  "icon": "🐙",
+  "id": "github_mcp",
+  "license": {
+    "acceptance_required": false,
+    "spdx": "PolyForm-Noncommercial-1.0.0"
+  },
+  "name": {
+    "en": "GitHub MCP (remote)",
+    "ru": "GitHub MCP (удалённый)",
+    "zh-CN": "GitHub MCP（远程）"
+  },
+  "permissions": {
+    "executes_code": false
+  },
+  "platform": {
+    "max": null,
+    "min": "2.18.0"
+  },
+  "preset": {
+    "config": {
+      "auth_header": "Bearer {GITHUB_TOKEN}",
+      "preset": "github_mcp",
+      "secret_env_fields": {
+        "token": {
+          "env": "GITHUB_TOKEN",
+          "help": "Fine-grained PAT (github_pat_*) с правами Contents/Issues/Pull requests/Metadata (Read). Copilot-эндпоинты не принимают классические ghp_*-токены.",
+          "label": "GitHub Personal Access Token",
+          "password": true
+        }
+      },
+      "transport": "http",
+      "url": "https://api.githubcopilot.com/mcp/"
+    },
+    "id": "github_mcp",
+    "memory_seed": "Эндпоинт: https://api.githubcopilot.com/mcp/ (HTTP). Требуется заголовок Authorization: Bearer <PAT>. Поддерживаются только fine-grained PAT (github_pat_*) с правами Contents/Issues/Pull requests/Metadata (Read); классические ghp_* отклоняются (HTTP 403 forbidden: access denied), также нужен доступ аккаунта к Copilot-эндпоинтам. GET /_ping без авторизации тоже отвечает 403 - это нормально.",
+    "service": "mcp",
+    "sort_order": 20
+  },
+  "requires_tools": [],
+  "schema": "sagaai.marketplace.entity/1",
+  "type": "mcp",
+  "version": "1.0.0"
+}

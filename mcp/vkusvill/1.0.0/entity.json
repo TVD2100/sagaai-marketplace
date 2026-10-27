@@ -1,0 +1,54 @@
+{
+  "author": {
+    "en": "SagaAI",
+    "ru": "SagaAI",
+    "zh-CN": "SagaAI"
+  },
+  "description": {
+    "en": "Grocery catalogue and recipes: product search, ingredients, nutrition, prices, basket. Public tools work without a token; a token opens personal data such as order history and favourite products.",
+    "ru": "Каталог и рецепты ВкусВилла: поиск товаров, состав, КБЖУ, цены, корзина. Публичные инструменты работают без токена; с токеном доступны персональные данные - история заказов, любимые продукты.",
+    "zh-CN": "Vkusvill 食品目录与食谱：商品搜索、配料、营养成分、价格与购物车。公开工具无需令牌；提供令牌后可访问订单历史、收藏商品等个人数据。"
+  },
+  "icon": "🛒",
+  "id": "vkusvill",
+  "license": {
+    "acceptance_required": false,
+    "spdx": "PolyForm-Noncommercial-1.0.0"
+  },
+  "name": {
+    "en": "Vkusvill",
+    "ru": "ВкусВилл",
+    "zh-CN": "Vkusvill"
+  },
+  "permissions": {
+    "executes_code": false
+  },
+  "platform": {
+    "max": null,
+    "min": "2.18.0"
+  },
+  "preset": {
+    "config": {
+      "auth_header": "Bearer {VKUSVILL_TOKEN}",
+      "preset": "vkusvill",
+      "secret_env_fields": {
+        "token": {
+          "env": "VKUSVILL_TOKEN",
+          "help": "OAuth-токен доступа. Без него работают публичные инструменты каталога и рецептов; с ним открываются личные данные корзины.",
+          "label": "Bearer-токен ВкусВилл (опционально)",
+          "password": true
+        }
+      },
+      "transport": "http",
+      "url": "https://mcp.vkusvill.ru/mcp"
+    },
+    "id": "vkusvill",
+    "memory_seed": "Эндпоинт: https://mcp.vkusvill.ru/mcp (HTTP). Публичные инструменты (поиск товаров, рецепты, корзина) работают без токена. VKUSVILL_TOKEN открывает персональные данные: история заказов, любимые продукты, наличие по адресу. Сюда записывайте предпочтения пользователя (привычные покупки, диета, любимые бренды); токены и пароли здесь не хранить.",
+    "service": "mcp",
+    "sort_order": 10
+  },
+  "requires_tools": [],
+  "schema": "sagaai.marketplace.entity/1",
+  "type": "mcp",
+  "version": "1.0.0"
+}
