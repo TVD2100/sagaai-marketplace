@@ -9,7 +9,8 @@ index.json                 the showcase: one summary per entity (generated, sign
 index.json.sig             Ed25519 signature over the canonical index JSON
 keys/<key_id>.pub          trust anchor shipped with the platform
 schema/*.json              JSON Schema of every file this repository holds
-agents/<id>/               agent entities
+agents/<id>/               agent entities: an employee (agent_kind=orchestrator)
+                           or a helper profile (agent_kind=assistant)
 skills/<id>/               skill entities
 rag/<id>/                  RAG bases
 mcp/<id>/                  MCP server presets

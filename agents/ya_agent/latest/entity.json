@@ -36,7 +36,7 @@
   "package": {
     "sha256": "95ea882d1f5c9ef78b1b5314d72e4c8d3dfa7ec4435e9af3ca1e4404f588cffd",
     "size": 51623,
-    "url": "agents/ya_agent/2.11.0/package.tar.gz"
+    "url": "agents/ya_agent/2.11.1/package.tar.gz"
   },
   "permissions": {
     "executes_code": false,
@@ -46,6 +46,13 @@
     "max": null,
     "min": "2.18.0"
   },
+  "recommends": [
+    {
+      "default_selected": true,
+      "id": "yaagentai_2020",
+      "type": "rag"
+    }
+  ],
   "requires_tools": [],
   "schema": "sagaai.marketplace.entity/1",
   "source_url": "https://github.com/TVD2100/sagaai-platform",
@@ -53,8 +60,9 @@
     "yandex ai studio",
     "agents",
     "rag",
-    "documentation"
+    "documentation",
+    "knowledge base"
   ],
   "type": "agent",
-  "version": "2.11.0"
+  "version": "2.11.1"
 }

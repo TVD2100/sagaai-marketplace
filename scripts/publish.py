@@ -110,6 +110,31 @@ def canonical_json(payload) -> bytes:
     ).encode("utf-8")
 
 
+#: Agent kinds a publisher may ship. An agent entity is either an
+#: orchestrator (an employee bundle) or an assistant (a prompt profile); the
+#: installer places each kind in its own folder.
+AGENT_KINDS = ("orchestrator", "assistant")
+
+
+def _check_agent_kind(entity: dict, type_: str) -> None:
+    """Refuse an agent manifest whose kind the platform cannot install.
+
+    The check lives in the publisher rather than in the installer alone: a
+    catalog that accepts an unknown kind produces an entity every installation
+    refuses, and the author learns about it from a user instead of from the
+    publish run.
+    """
+    if type_ != "agent":
+        return
+    kind = str(entity.get("agent_kind") or "orchestrator").strip()
+    if kind not in AGENT_KINDS:
+        raise PublishError(
+            "invalid_agent_kind",
+            f"Unknown agent kind '{kind}'",
+            {"agent_kind": kind, "known": list(AGENT_KINDS)},
+        )
+
+
 def _check_id(value: str, field: str) -> str:
     """Return a validated catalog id or raise."""
     text = str(value or "").strip()
@@ -229,7 +254,12 @@ def build_manifest(
             {"type": type_, "known": sorted(TYPE_FOLDERS)},
         )
     package = build_package(files)
+    _check_agent_kind(entity, type_)
     manifest = {key: value for key, value in entity.items() if key != "files"}
+    if type_ == "agent":
+        # The kind is recorded explicitly: a catalog entry without one looks
+        # like an incomplete manifest to any consumer that reads the index.
+        manifest["agent_kind"] = str(entity.get("agent_kind") or "orchestrator").strip()
     manifest.update({
         "schema": str(entity.get("schema") or "sagaai.marketplace.entity/1"),
         "type": type_,
@@ -274,6 +304,7 @@ def publish_entity(
     manifest: dict,
     *,
     package_name: str = "package.tar.gz",
+    extra_files: Optional[Dict[str, bytes]] = None,
 ) -> dict:
     """Publish one version of an entity into a catalog tree.
 
@@ -294,11 +325,13 @@ def publish_entity(
     entity_id = _check_id(manifest.get("id"), "id")
     version = _check_version(manifest.get("version"))
     type_ = str(manifest.get("type") or "skill").strip()
+    _check_agent_kind(manifest, type_)
     folder_name = type_folder(type_)
 
     target = version_dir(root, type_, entity_id, version)
     manifest_path = os.path.join(target, "entity.json")
-    if entity_folder is None and type_ != "mcp":
+    extra = dict(extra_files or {})
+    if entity_folder is None and type_ not in ("mcp", "rag"):
         raise PublishError(
             "folder_required",
             f"An entity of type '{type_}' ships files and needs a folder",
@@ -320,6 +353,19 @@ def publish_entity(
         package_url = f"{folder_name}/{entity_id}/{version}/{package_name}"
         full, package = build_manifest(manifest, files, package_url)
 
+    # A prebuilt index is published next to the package rather than inside it:
+    # the base installer downloads it through its own URL and verifies that one
+    # hash, so the block describing it is derived from the bytes about to be
+    # written instead of from what the caller believed they were.
+    if type_ == "rag" and "index.db" in extra:
+        payload = extra["index.db"]
+        distribution = dict(full.get("distribution") or {})
+        distribution.setdefault("mode", "prebuilt_index")
+        distribution["index_url"] = f"{folder_name}/{entity_id}/{version}/index.db"
+        distribution["index_sha256"] = sha256_bytes(payload)
+        distribution["index_bytes"] = len(payload)
+        full["distribution"] = distribution
+
     package_path = os.path.join(target, package_name)
     changed = True
     if os.path.isfile(manifest_path):
@@ -328,7 +374,18 @@ def publish_entity(
         if os.path.isfile(package_path):
             with open(package_path, "rb") as handle:
                 existing_package = handle.read()
-        if existing_manifest is not None and existing_manifest == full and existing_package == package:
+        same_extra = True
+        for name, payload in extra.items():
+            existing_extra = os.path.join(target, name)
+            if not os.path.isfile(existing_extra):
+                same_extra = False
+                break
+            with open(existing_extra, "rb") as handle:
+                if handle.read() != payload:
+                    same_extra = False
+                    break
+        if (existing_manifest is not None and existing_manifest == full
+                and existing_package == package and same_extra):
             changed = False
         else:
             raise PublishError(
@@ -341,6 +398,9 @@ def publish_entity(
         if package:
             with open(package_path, "wb") as handle:
                 handle.write(package)
+        for name, payload in extra.items():
+            with open(os.path.join(target, name), "wb") as handle:
+                handle.write(payload)
         _write_json(manifest_path, full)
 
     _refresh_latest(root, type_, entity_id)
@@ -426,6 +486,10 @@ def _index_entry(entity: dict) -> dict:
     platform = entity.get("platform") if isinstance(entity.get("platform"), dict) else None
     if platform:
         entry["platform"] = platform
+    # The kind travels with the index entry: the showcase tags an agent card
+    # as an employee or a helper without downloading its full manifest.
+    if type_ == "agent":
+        entry["agent_kind"] = str(entity.get("agent_kind") or "orchestrator")
     return entry
 
 

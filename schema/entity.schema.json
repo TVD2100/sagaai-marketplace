@@ -9,6 +9,10 @@
   "properties": {
     "schema": {"const": "sagaai.marketplace.entity/1"},
     "type": {"enum": ["agent", "skill", "rag", "mcp"]},
+    "agent_kind": {
+      "enum": ["orchestrator", "assistant"],
+      "description": "Agents only: an employee (orchestrator, instructions folder) or a helper (assistant, prompt profile). Absent means orchestrator."
+    },
     "id": {
       "type": "string",
       "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",

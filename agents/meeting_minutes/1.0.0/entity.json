@@ -1,0 +1,52 @@
+{
+  "agent_kind": "assistant",
+  "author": {
+    "en": "SagaAI",
+    "ru": "SagaAI",
+    "zh-CN": "SagaAI"
+  },
+  "description": {
+    "en": "Turns a meeting transcript into a structured protocol with decisions, tasks and owners. Writes in the language of the transcript unless asked otherwise.",
+    "ru": "Превращает расшифровку встречи в структурированный протокол с решениями, задачами и ответственными. Пишет на языке расшифровки, если не попросили другой.",
+    "zh-CN": "将会议转写稿整理为结构化纪要：决议、任务与负责人。默认使用转写稿的语言。"
+  },
+  "files": {
+    "manifest.json": "f5e373c7a728ab12ddee3f60b7260ed359e4d820ce4cf920522d2132f6a7fd27",
+    "prompt.md": "608d79d6a02bc272cb345c1ada333224c1820a6348aef9cc448b261f59082b37"
+  },
+  "icon": "📝",
+  "id": "meeting_minutes",
+  "license": {
+    "acceptance_required": false,
+    "spdx": "PolyForm-Noncommercial-1.0.0"
+  },
+  "name": {
+    "en": "Meeting Minutes",
+    "ru": "Протоколы встреч",
+    "zh-CN": "会议纪要"
+  },
+  "package": {
+    "sha256": "734b7dbabc246f6491c46348855d36a30d37b257978376840e0e7a5238583d56",
+    "size": 2358,
+    "url": "agents/meeting_minutes/1.0.0/package.tar.gz"
+  },
+  "permissions": {
+    "executes_code": false,
+    "secrets": []
+  },
+  "platform": {
+    "max": null,
+    "min": "2.18.0"
+  },
+  "requires_tools": [],
+  "schema": "sagaai.marketplace.entity/1",
+  "source_url": "https://github.com/TVD2100/sagaai-platform",
+  "tags": [
+    "meetings",
+    "minutes",
+    "protocol",
+    "transcript"
+  ],
+  "type": "agent",
+  "version": "1.0.0"
+}
