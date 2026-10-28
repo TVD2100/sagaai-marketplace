@@ -8,6 +8,42 @@
         "zh-CN": "SagaAI"
       },
       "description": {
+        "en": "Agent for building and testing agents and multi-agent systems on Yandex AI Studio: searches the official documentation and uses a local documentation catalog.",
+        "ru": "Агент по разработке и тестированию агентов и мультиагентных систем на базе Yandex AI Studio. Ищет официальную документацию и использует локальный каталог документации.",
+        "zh-CN": "用于在 Yandex AI Studio 上开发和测试智能体与多智能体系统的智能体：检索官方文档并使用本地文档目录。"
+      },
+      "icon": "🧭",
+      "id": "ya_agent",
+      "license": {
+        "acceptance_required": false,
+        "spdx": "PolyForm-Noncommercial-1.0.0"
+      },
+      "name": {
+        "en": "YaAgent",
+        "ru": "YaAgent",
+        "zh-CN": "YaAgent"
+      },
+      "path": "agents/ya_agent/2.11.0",
+      "platform": {
+        "max": null,
+        "min": "2.18.0"
+      },
+      "tags": [
+        "yandex ai studio",
+        "agents",
+        "rag",
+        "documentation"
+      ],
+      "type": "agent",
+      "version": "2.11.0"
+    },
+    {
+      "author": {
+        "en": "SagaAI",
+        "ru": "SagaAI",
+        "zh-CN": "SagaAI"
+      },
+      "description": {
         "en": "Official GitHub MCP server: repositories, issues, pull requests, code search. Requires a fine-grained personal access token.",
         "ru": "Официальный GitHub MCP-сервер: репозитории, issues, пул-реквесты, поиск кода. Требует fine-grained Personal Access Token.",
         "zh-CN": "GitHub 官方 MCP 服务器：仓库、议题、拉取请求与代码搜索。需要细粒度个人访问令牌。"
@@ -68,6 +104,41 @@
         "zh-CN": "SagaAI"
       },
       "description": {
+        "en": "Complete knowledge base of Yandex Cloud documentation for the YaAgentAI skill: 1705 files, 2013 chunks of 1800 characters with document/product/section headers.",
+        "ru": "Полная база знаний по документации Yandex Cloud для навыка YaAgentAI: 1705 файлов, 2013 чанков по 1800 символов с заголовками Документ/Продукт/Раздел.",
+        "zh-CN": "YaAgentAI 技能使用的 Yandex Cloud 文档完整知识库：1705 个文件，2013 个 1800 字符的分块。"
+      },
+      "icon": "📚",
+      "id": "yaagentai_2020",
+      "license": {
+        "acceptance_required": false,
+        "spdx": "PolyForm-Noncommercial-1.0.0"
+      },
+      "name": {
+        "en": "YaAgentAI - full base",
+        "ru": "YaAgentAI — полная база",
+        "zh-CN": "YaAgentAI 完整知识库"
+      },
+      "path": "rag/yaagentai_2020/1.1.0",
+      "platform": {
+        "max": null,
+        "min": "2.18.0"
+      },
+      "tags": [
+        "yandex cloud",
+        "documentation",
+        "rag"
+      ],
+      "type": "rag",
+      "version": "1.1.0"
+    },
+    {
+      "author": {
+        "en": "SagaAI",
+        "ru": "SagaAI",
+        "zh-CN": "SagaAI"
+      },
+      "description": {
         "en": "Builds and populates RAG knowledge bases through the platform API: chunking, embeddings, indexing, re-indexing and cleanup, with a ready-to-run helper script.",
         "ru": "Создаёт и наполняет базы знаний RAG через API платформы: разбиение на чанки, эмбеддинги, индексация, переиндексация и очистка; включает готовый скрипт-помощник.",
         "zh-CN": "通过平台 API 构建并填充 RAG 知识库：分块、嵌入、索引、重建索引与清理，并附带可直接运行的辅助脚本。"
@@ -98,5 +169,5 @@
     }
   ],
   "schema": "sagaai.marketplace.index/1",
-  "updated_at": "2026-10-27T21:22:58Z"
+  "updated_at": "2026-10-27T22:06:18Z"
 }

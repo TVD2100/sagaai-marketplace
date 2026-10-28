@@ -1,8 +1,8 @@
 {
   "algorithm": "ed25519",
-  "index_sha256": "8fec41471c7db8e12e23d0af0c6d5b186341e8b6fa8bcb73396d0e228107e507",
+  "index_sha256": "95aab4b8ac113ea5533a91b54ce23f7ec6b27738a620846dbcb030a13d3a36b0",
   "key_id": "sagaai-marketplace-2026",
   "schema": "sagaai.marketplace.signature/1",
-  "signature": "bc2052f063f1a00cb29fe6390c7757197f10649ae72300a0fc7ded443b05ca94bd3ee3c819a5c364580753eb4a648c4496c0504aef67c57325141dbb2d073d09",
-  "signed_at": "2026-10-27T21:22:58Z"
+  "signature": "b83136bdc267e6a166d135cb66c45a536a66f93d248a1a6e327b059919e4d36314eb7b6e5dbf2e9a291e5cc8b716eccfa2da193c34f0f2c85e69d9d2224f980c",
+  "signed_at": "2026-10-27T22:06:19Z"
 }

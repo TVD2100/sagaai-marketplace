@@ -1,0 +1,60 @@
+{
+  "agent_kind": "orchestrator",
+  "author": {
+    "en": "SagaAI",
+    "ru": "SagaAI",
+    "zh-CN": "SagaAI"
+  },
+  "description": {
+    "en": "Agent for building and testing agents and multi-agent systems on Yandex AI Studio: searches the official documentation and uses a local documentation catalog.",
+    "ru": "Агент по разработке и тестированию агентов и мультиагентных систем на базе Yandex AI Studio. Ищет официальную документацию и использует локальный каталог документации.",
+    "zh-CN": "用于在 Yandex AI Studio 上开发和测试智能体与多智能体系统的智能体：检索官方文档并使用本地文档目录。"
+  },
+  "files": {
+    "instructions/agent_atelier_agents.md": "d678e30a49e537b8a0b6186b790228157e031d35cff8bbeb2470d64d83cf0d6d",
+    "instructions/agent_security_guardrails.md": "d4207248af45f98acf63aff6075e2979b4aa3a6849de494a2c4012abddaab7a5",
+    "instructions/agent_tools_mcp.md": "f4817034ab6ea062b4970f0a0e92f581927c61d653a55efa1fed17cfd369129e",
+    "instructions/agents_responses_api.md": "550ed1e04000b4fcdae1fd0bf7f5dbb02e46b602641681a2e3948c80e2245e31",
+    "instructions/fine_tuning_classifiers.md": "84cc1f17ecd4158117eaaec0d3f2fb232be06542b1688048c618d14245377638",
+    "instructions/multimodal_yandex_services.md": "29312d1d96c894e72e25f6818fb0fbd16ab256bccfab04f0c6ec894bb16e8f06",
+    "instructions/rag_search_embeddings.md": "52441418ed312a316b8da3272c2da35ebde7eee388eb64a3e9b01b7cfcb13161",
+    "instructions/yandex_models_reference.md": "b067dbd137126db2d88ee70a19e07f84858240ef33b4a0bfea4c83b6738b156c",
+    "orchestrator.json": "5f45564bb19e94441b7e01c98a0cbc6454adcb0765813995efa4978e0a9cf67a",
+    "system_prompt.md": "f11795501d8ac9e8bd3e575da21d38bbe4b40cf9b34f891598f000465fc17fdf"
+  },
+  "icon": "🧭",
+  "id": "ya_agent",
+  "license": {
+    "acceptance_required": false,
+    "spdx": "PolyForm-Noncommercial-1.0.0"
+  },
+  "name": {
+    "en": "YaAgent",
+    "ru": "YaAgent",
+    "zh-CN": "YaAgent"
+  },
+  "package": {
+    "sha256": "95ea882d1f5c9ef78b1b5314d72e4c8d3dfa7ec4435e9af3ca1e4404f588cffd",
+    "size": 51623,
+    "url": "agents/ya_agent/2.11.0/package.tar.gz"
+  },
+  "permissions": {
+    "executes_code": false,
+    "secrets": []
+  },
+  "platform": {
+    "max": null,
+    "min": "2.18.0"
+  },
+  "requires_tools": [],
+  "schema": "sagaai.marketplace.entity/1",
+  "source_url": "https://github.com/TVD2100/sagaai-platform",
+  "tags": [
+    "yandex ai studio",
+    "agents",
+    "rag",
+    "documentation"
+  ],
+  "type": "agent",
+  "version": "2.11.0"
+}

@@ -1,0 +1,56 @@
+{
+  "author": {
+    "en": "SagaAI",
+    "ru": "SagaAI",
+    "zh-CN": "SagaAI"
+  },
+  "description": {
+    "en": "Complete knowledge base of Yandex Cloud documentation for the YaAgentAI skill: 1705 files, 2013 chunks of 1800 characters with document/product/section headers.",
+    "ru": "Полная база знаний по документации Yandex Cloud для навыка YaAgentAI: 1705 файлов, 2013 чанков по 1800 символов с заголовками Документ/Продукт/Раздел.",
+    "zh-CN": "YaAgentAI 技能使用的 Yandex Cloud 文档完整知识库：1705 个文件，2013 个 1800 字符的分块。"
+  },
+  "distribution": {
+    "chunks": 2013,
+    "dimensions": 256,
+    "embedding_model": "text-search-doc",
+    "index_bytes": 7258112,
+    "index_schema": 3,
+    "index_sha256": "80fb3dca24d9bb75d2014d2984232f12096ddc1235ea797ca2550560a09997be",
+    "index_url": "rag/yaagentai_2020/1.1.0/index.db",
+    "mode": "prebuilt_index",
+    "provider": "YandexAI",
+    "sources_count": 1705
+  },
+  "icon": "📚",
+  "id": "yaagentai_2020",
+  "license": {
+    "acceptance_required": false,
+    "spdx": "PolyForm-Noncommercial-1.0.0"
+  },
+  "manifest": {
+    "chunk_overlap": 0,
+    "chunk_size": 1800,
+    "embedding_model": "text-search-doc",
+    "provider": "YandexAI",
+    "rag_slots": [],
+    "search_mode": "bm25"
+  },
+  "name": {
+    "en": "YaAgentAI - full base",
+    "ru": "YaAgentAI — полная база",
+    "zh-CN": "YaAgentAI 完整知识库"
+  },
+  "platform": {
+    "max": null,
+    "min": "2.18.0"
+  },
+  "schema": "sagaai.marketplace.entity/1",
+  "source_url": "https://github.com/TVD2100/sagaai-platform",
+  "tags": [
+    "yandex cloud",
+    "documentation",
+    "rag"
+  ],
+  "type": "rag",
+  "version": "1.1.0"
+}
