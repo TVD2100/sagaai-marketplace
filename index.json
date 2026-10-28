@@ -148,6 +148,81 @@
         "zh-CN": "SagaAI"
       },
       "description": {
+        "en": "Renders multi-section PNG infographics from a JSON spec: KPI cards, metrics tables, rating bars, pros and cons, bullet lists, sources footer and images; automatic canvas height, text wrapping checks and PNG validation.",
+        "ru": "Собирает многосекционные инфографики в PNG из JSON-описания: KPI-карточки, таблицы показателей, рейтинговые полосы, плюсы и минусы, списки, блок источников и изображения; автоматическая высота холста, проверка переносов текста и валидация PNG.",
+        "zh-CN": "根据 JSON 规范生成多区块 PNG 信息图：KPI 卡片、指标表格、评分条形、优缺点、列表、来源与图片；自动画布高度、文本换行检查与 PNG 校验。"
+      },
+      "icon": "📊",
+      "id": "infographic_builder",
+      "license": {
+        "acceptance_required": false,
+        "spdx": "PolyForm-Noncommercial-1.0.0"
+      },
+      "name": {
+        "en": "Infographic Builder",
+        "ru": "Инфографика",
+        "zh-CN": "信息图生成器"
+      },
+      "path": "skills/infographic_builder/0.1.0",
+      "platform": {
+        "max": null,
+        "min": "2.18.0"
+      },
+      "tags": [
+        "infographic",
+        "png",
+        "poster",
+        "data visualization",
+        "report"
+      ],
+      "type": "skill",
+      "version": "0.1.0"
+    },
+    {
+      "author": {
+        "en": "SagaAI",
+        "ru": "SagaAI",
+        "zh-CN": "SagaAI"
+      },
+      "description": {
+        "en": "Builds university lecture decks (PPTX) from a JSON spec: speaker notes on every slide, editable Office Math formulas, syntax-highlighted code, academic slide types, APA 7 citations and automated QA with an optional PDF handout.",
+        "ru": "Собирает университетские лекционные презентации (PPTX) из JSON-описания: заметки докладчика на каждом слайде, редактируемые формулы Office Math, подсветка кода, академические типы слайдов, ссылки APA 7 и автоматическая проверка качества с опциональным PDF-раздаточным материалом.",
+        "zh-CN": "根据 JSON 规范生成大学讲座演示文稿（PPTX）：每页演讲备注、可编辑 Office Math 公式、代码高亮、学术版式、APA 7 引用与自动质量检查，可选 PDF 讲义。"
+      },
+      "icon": "🎓",
+      "id": "lecture_slides",
+      "license": {
+        "acceptance_required": false,
+        "spdx": "PolyForm-Noncommercial-1.0.0"
+      },
+      "name": {
+        "en": "Lecture Slides",
+        "ru": "Слайды лекций",
+        "zh-CN": "讲座幻灯片"
+      },
+      "path": "skills/lecture_slides/1.8.0",
+      "platform": {
+        "max": null,
+        "min": "2.18.0"
+      },
+      "tags": [
+        "lecture",
+        "slides",
+        "pptx",
+        "teaching",
+        "formulas",
+        "code"
+      ],
+      "type": "skill",
+      "version": "1.8.0"
+    },
+    {
+      "author": {
+        "en": "SagaAI",
+        "ru": "SagaAI",
+        "zh-CN": "SagaAI"
+      },
+      "description": {
         "en": "Builds and populates RAG knowledge bases through the platform API: chunking, embeddings, indexing, re-indexing and cleanup, with a ready-to-run helper script.",
         "ru": "Создаёт и наполняет базы знаний RAG через API платформы: разбиение на чанки, эмбеддинги, индексация, переиндексация и очистка; включает готовый скрипт-помощник.",
         "zh-CN": "通过平台 API 构建并填充 RAG 知识库：分块、嵌入、索引、重建索引与清理，并附带可直接运行的辅助脚本。"
@@ -178,5 +253,5 @@
     }
   ],
   "schema": "sagaai.marketplace.index/1",
-  "updated_at": "2026-10-28T08:42:25Z"
+  "updated_at": "2026-10-28T10:07:30Z"
 }

@@ -1,0 +1,63 @@
+{
+  "author": {
+    "en": "SagaAI",
+    "ru": "SagaAI",
+    "zh-CN": "SagaAI"
+  },
+  "description": {
+    "en": "Renders multi-section PNG infographics from a JSON spec: KPI cards, metrics tables, rating bars, pros and cons, bullet lists, sources footer and images; automatic canvas height, text wrapping checks and PNG validation.",
+    "ru": "Собирает многосекционные инфографики в PNG из JSON-описания: KPI-карточки, таблицы показателей, рейтинговые полосы, плюсы и минусы, списки, блок источников и изображения; автоматическая высота холста, проверка переносов текста и валидация PNG.",
+    "zh-CN": "根据 JSON 规范生成多区块 PNG 信息图：KPI 卡片、指标表格、评分条形、优缺点、列表、来源与图片；自动画布高度、文本换行检查与 PNG 校验。"
+  },
+  "files": {
+    "CHANGELOG.md": "54cba9a5249a77a061e8866be15559906cf52f9e5afb4d9d826a37bfc1378457",
+    "SKILL.md": "42df8ac27fdd3aa4a739a9453d90af50d006e3580cf0efb563acdeced810d014",
+    "build_infographic.py": "4f4a42732986986f66447564a75926d4052d651fa786e09ee6a18d191c32adcd",
+    "examples/demo_infographic.png": "feb6144965d19d22f1fed5a3a85b2ba85e1b04ef933c2110127d6460970ed000",
+    "examples/demo_spec.json": "486eb689022cfd27dbc3215e233e9a4bb54a5c3c7b41e05eadd95b5edf265be7",
+    "infographic/__init__.py": "6792fc880fb8d1512aa6aec20998a8d040f8cbd3645ee76393e8e785576f2c18",
+    "infographic/components.py": "f79e8f4a5c9c4bc01ced7a9684a22bb8724b8262e459fbdfacd3e9114bcc3346",
+    "infographic/engine.py": "add48a0707e9315ffc5c09a4f434166912a5b9e68b2b34a69d02da03d8450c97",
+    "infographic/spec.py": "9ed0621926926548d79c647d0ea022d8d0d5721cd7014b660ff590b3c42fce4c",
+    "infographic/textkit.py": "169d77f0dddc13c6e3e1fa34b70687360f4152c55b447c51b58e623c0904b7a3",
+    "infographic/theme.py": "da61e524873cd3c0daa1fff2a940e4041bdca8d7a1405a69d3e5e9f66bb254a1",
+    "tests/conftest.py": "3f13b2459ddc63662e95b3ca022a37006182acd98706063a86ba8c0ec5361d04",
+    "tests/scenarios/test_scenarios.py": "d6f5c1a782d3e63eb386ebe8aedca194fabcd82c3b0b9a6ef111a7c69e5f7fd4",
+    "tests/test_engine.py": "0a02ab044f090050e860ccde4a5c2166f1c5aff7eb73cc752b1a161da2811de8"
+  },
+  "icon": "📊",
+  "id": "infographic_builder",
+  "license": {
+    "acceptance_required": false,
+    "spdx": "PolyForm-Noncommercial-1.0.0"
+  },
+  "name": {
+    "en": "Infographic Builder",
+    "ru": "Инфографика",
+    "zh-CN": "信息图生成器"
+  },
+  "package": {
+    "sha256": "a3597a1c4adf3568773f6a35675bd6348a3690eba50933bd916ea550007a87a5",
+    "size": 209623,
+    "url": "skills/infographic_builder/0.1.0/package.tar.gz"
+  },
+  "permissions": {
+    "executes_code": true
+  },
+  "platform": {
+    "max": null,
+    "min": "2.18.0"
+  },
+  "requires_tools": [],
+  "schema": "sagaai.marketplace.entity/1",
+  "source_url": "https://github.com/TVD2100/sagaai-marketplace",
+  "tags": [
+    "infographic",
+    "png",
+    "poster",
+    "data visualization",
+    "report"
+  ],
+  "type": "skill",
+  "version": "0.1.0"
+}
