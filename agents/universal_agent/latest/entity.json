@@ -1,0 +1,52 @@
+{
+  "agent_kind": "orchestrator",
+  "author": {
+    "en": "SagaAI",
+    "ru": "SagaAI",
+    "zh-CN": "SagaAI"
+  },
+  "description": {
+    "en": "General-purpose executor: helps the user or another agent solve whatever task it is given, taking the role from the brief instead of a fixed specialisation.",
+    "ru": "Универсальный исполнитель: помогает пользователю или другому агенту решить поставленную задачу, принимая роль из брифа, а не из фиксированной специализации.",
+    "zh-CN": "通用执行专员：帮助用户或其他智能体完成任务，角色由任务说明决定，而非固定专业领域。"
+  },
+  "files": {
+    "orchestrator.json": "b33ff9c2606283af3769408b0ebb6a20a298d0365a8a1aab8d04bf5f297de4a0",
+    "system_prompt.md": "245aef86275a488d9a33a0d941df5ae56eeef327cddfa872f96be5d7bcbedcec"
+  },
+  "icon": "🧰",
+  "id": "universal_agent",
+  "license": {
+    "acceptance_required": false,
+    "spdx": "PolyForm-Noncommercial-1.0.0"
+  },
+  "name": {
+    "en": "Universal-Agent",
+    "ru": "Universal-Agent",
+    "zh-CN": "Universal-Agent"
+  },
+  "package": {
+    "sha256": "66dd2f3c1f1100e4dec77a3ee90948cd32e62f72ffa1cf901ad4e372ae4fd05c",
+    "size": 1315,
+    "url": "agents/universal_agent/1.0.0/package.tar.gz"
+  },
+  "permissions": {
+    "executes_code": true,
+    "secrets": []
+  },
+  "platform": {
+    "max": null,
+    "min": "2.31.0"
+  },
+  "requires_tools": [],
+  "schema": "sagaai.marketplace.entity/1",
+  "source_url": "https://github.com/TVD2100/sagaai-platform",
+  "tags": [
+    "general purpose",
+    "executor",
+    "delegation",
+    "subagent"
+  ],
+  "type": "agent",
+  "version": "1.0.0"
+}
