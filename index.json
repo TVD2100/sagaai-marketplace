@@ -46,6 +46,43 @@
         "zh-CN": "SagaAI"
       },
       "description": {
+        "en": "General-purpose executor: helps the user or another agent solve whatever task it is given, taking the role from the brief instead of a fixed specialisation.",
+        "ru": "Универсальный исполнитель: помогает пользователю или другому агенту решить поставленную задачу, принимая роль из брифа, а не из фиксированной специализации.",
+        "zh-CN": "通用执行专员：帮助用户或其他智能体完成任务，角色由任务说明决定，而非固定专业领域。"
+      },
+      "icon": "🧰",
+      "id": "universal_agent",
+      "license": {
+        "acceptance_required": false,
+        "spdx": "PolyForm-Noncommercial-1.0.0"
+      },
+      "name": {
+        "en": "Universal-Agent",
+        "ru": "Universal-Agent",
+        "zh-CN": "Universal-Agent"
+      },
+      "path": "agents/universal_agent/1.0.0",
+      "platform": {
+        "max": null,
+        "min": "2.31.0"
+      },
+      "tags": [
+        "general purpose",
+        "executor",
+        "delegation",
+        "subagent"
+      ],
+      "type": "agent",
+      "version": "1.0.0"
+    },
+    {
+      "agent_kind": "orchestrator",
+      "author": {
+        "en": "SagaAI",
+        "ru": "SagaAI",
+        "zh-CN": "SagaAI"
+      },
+      "description": {
         "en": "Agent for building and testing agents and multi-agent systems on Yandex AI Studio: searches the official documentation and uses a local documentation catalog.",
         "ru": "Агент по разработке и тестированию агентов и мультиагентных систем на базе Yandex AI Studio. Ищет официальную документацию и использует локальный каталог документации.",
         "zh-CN": "用于在 Yandex AI Studio 上开发和测试智能体与多智能体系统的智能体：检索官方文档并使用本地文档目录。"
@@ -253,5 +290,5 @@
     }
   ],
   "schema": "sagaai.marketplace.index/1",
-  "updated_at": "2026-10-28T10:07:30Z"
+  "updated_at": "2026-11-03T14:51:01Z"
 }
