@@ -46,6 +46,44 @@
         "zh-CN": "SagaAI"
       },
       "description": {
+        "en": "Proactive task-discovery employee: polls the delegated employees in a swarm, asks each for its open and planned work, fills the gaps from their memory folders and dialogs, adds evidence-based forecasts and returns conceptual task briefs the user can copy to the right employee.",
+        "ru": "Сотрудник проактивного поиска задач: опрашивает отмеченных в делегировании сотрудников роспуском, спрашивает у каждого незакрытые и запланированные работы, добирает пробелы из их папок памяти и диалогов, добавляет прогнозы с обоснованием и выдаёт концептуальные брифы задач, которые пользователь копирует нужному сотруднику.",
+        "zh-CN": "主动任务发现专员：以群组方式询问被授权的员工，收集其未完成与计划中的工作，从记忆文件夹和对话中补齐缺口，给出有依据的预测，并输出可直接复制给对应员工的任务说明。"
+      },
+      "icon": "🔎",
+      "id": "task_scout",
+      "license": {
+        "acceptance_required": false,
+        "spdx": "PolyForm-Noncommercial-1.0.0"
+      },
+      "name": {
+        "en": "Task Scout",
+        "ru": "Task Scout",
+        "zh-CN": "Task Scout"
+      },
+      "path": "agents/task_scout/1.0.0",
+      "platform": {
+        "max": null,
+        "min": "2.30.0"
+      },
+      "tags": [
+        "task discovery",
+        "planning",
+        "delegation",
+        "swarm",
+        "proactivity"
+      ],
+      "type": "agent",
+      "version": "1.0.0"
+    },
+    {
+      "agent_kind": "orchestrator",
+      "author": {
+        "en": "SagaAI",
+        "ru": "SagaAI",
+        "zh-CN": "SagaAI"
+      },
+      "description": {
         "en": "General-purpose executor: helps the user or another agent solve whatever task it is given, taking the role from the brief instead of a fixed specialisation.",
         "ru": "Универсальный исполнитель: помогает пользователю или другому агенту решить поставленную задачу, принимая роль из брифа, а не из фиксированной специализации.",
         "zh-CN": "通用执行专员：帮助用户或其他智能体完成任务，角色由任务说明决定，而非固定专业领域。"
@@ -290,5 +328,5 @@
     }
   ],
   "schema": "sagaai.marketplace.index/1",
-  "updated_at": "2026-11-03T14:51:01Z"
+  "updated_at": "2026-11-04T11:40:34Z"
 }

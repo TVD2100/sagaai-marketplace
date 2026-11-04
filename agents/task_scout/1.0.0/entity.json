@@ -1,0 +1,62 @@
+{
+  "agent_kind": "orchestrator",
+  "author": {
+    "en": "SagaAI",
+    "ru": "SagaAI",
+    "zh-CN": "SagaAI"
+  },
+  "description": {
+    "en": "Proactive task-discovery employee: polls the delegated employees in a swarm, asks each for its open and planned work, fills the gaps from their memory folders and dialogs, adds evidence-based forecasts and returns conceptual task briefs the user can copy to the right employee.",
+    "ru": "Сотрудник проактивного поиска задач: опрашивает отмеченных в делегировании сотрудников роспуском, спрашивает у каждого незакрытые и запланированные работы, добирает пробелы из их папок памяти и диалогов, добавляет прогнозы с обоснованием и выдаёт концептуальные брифы задач, которые пользователь копирует нужному сотруднику.",
+    "zh-CN": "主动任务发现专员：以群组方式询问被授权的员工，收集其未完成与计划中的工作，从记忆文件夹和对话中补齐缺口，给出有依据的预测，并输出可直接复制给对应员工的任务说明。"
+  },
+  "files": {
+    "functions/agent_memory_reader.py": "def45f3fb4596331b99a0ff4ffaf920be164c09bb2290d91ad0c0090c00e79f4",
+    "functions/agent_thread_reader.py": "234c5b5943f9bbea66dc344ba93982e42ceb3e4574b5284e1651ae64caf6b144",
+    "orchestrator.json": "2e790b14f1800595514159b7b332bc489878f4fc00ff3ec80aed9f1d7b16a89c",
+    "system_prompt.md": "2a267544e2036279871da41474543f69fe11efbe6e776deaadb18dbb8823de9c"
+  },
+  "icon": "🔎",
+  "id": "task_scout",
+  "license": {
+    "acceptance_required": false,
+    "spdx": "PolyForm-Noncommercial-1.0.0"
+  },
+  "name": {
+    "en": "Task Scout",
+    "ru": "Task Scout",
+    "zh-CN": "Task Scout"
+  },
+  "package": {
+    "sha256": "d9bf543fcc783f51e5792a044921e982037d33407156e668e810488f07ef7e0d",
+    "size": 12291,
+    "url": "agents/task_scout/1.0.0/package.tar.gz"
+  },
+  "permissions": {
+    "executes_code": true,
+    "secrets": []
+  },
+  "platform": {
+    "max": null,
+    "min": "2.30.0"
+  },
+  "requires_tools": [
+    "spawn_agent",
+    "subagent_status",
+    "subagent_result",
+    "read_subagent_state",
+    "search_in_threads",
+    "read_thread"
+  ],
+  "schema": "sagaai.marketplace.entity/1",
+  "source_url": "https://github.com/TVD2100/sagaai-platform",
+  "tags": [
+    "task discovery",
+    "planning",
+    "delegation",
+    "swarm",
+    "proactivity"
+  ],
+  "type": "agent",
+  "version": "1.0.0"
+}
