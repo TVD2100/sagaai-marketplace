@@ -61,7 +61,7 @@
         "ru": "Менеджер проектов",
         "zh-CN": "项目经理"
       },
-      "path": "agents/project_manager/1.0.0",
+      "path": "agents/project_manager/1.0.1",
       "platform": {
         "max": null,
         "min": "2.30.0"
@@ -75,7 +75,7 @@
         "status reports"
       ],
       "type": "agent",
-      "version": "1.0.0"
+      "version": "1.0.1"
     },
     {
       "agent_kind": "orchestrator",
@@ -367,5 +367,5 @@
     }
   ],
   "schema": "sagaai.marketplace.index/1",
-  "updated_at": "2026-11-08T08:27:02Z"
+  "updated_at": "2026-11-08T08:33:50Z"
 }
