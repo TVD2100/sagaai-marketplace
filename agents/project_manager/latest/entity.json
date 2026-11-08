@@ -19,8 +19,8 @@
     "instructions/pm_planning.md": "a571a5a59f55daedf4bdb131bc56396cb634c79696322ca34235bbf64e475a65",
     "instructions/pm_risks.md": "a01900935acaa658e743705471eaaa120f5c3a3895f6602af117533001e3ebe3",
     "instructions/pm_storage.md": "d850c49cbd8d5b6bea34d15349a936279f3741ffc7449e76565cf231a4289905",
-    "orchestrator.json": "502b80a82ce51191d075f01b64a29ae3e9e9b5f34ad6b1c285b5c5e9623e7e73",
-    "system_prompt.md": "f1ef0022e9f22109a7530e9d89d153e654bd5c2fb73d03181864f1ffa3305bd1"
+    "orchestrator.json": "16f09096e3f994ba1dfa74dcfb3bbdf090db92eb1527561938704e0ccff4d012",
+    "system_prompt.md": "bc6fede3bf94248f04c5382ee139358ecc6fbd260d77a26772984564f37d2803"
   },
   "icon": "📋",
   "id": "project_manager",
@@ -34,9 +34,9 @@
     "zh-CN": "项目经理"
   },
   "package": {
-    "sha256": "20fe70b5fc6aef67d26577b6080797c2ca3393b1febe3f379065827a1d43c7a0",
-    "size": 34927,
-    "url": "agents/project_manager/1.0.0/package.tar.gz"
+    "sha256": "7d50ec6ef32a75ee4d566eebf31fb6b3ae73fa1d5deab958ed69e2b8a41e9f8a",
+    "size": 34921,
+    "url": "agents/project_manager/1.0.1/package.tar.gz"
   },
   "permissions": {
     "executes_code": false,
@@ -67,5 +67,5 @@
     "status reports"
   ],
   "type": "agent",
-  "version": "1.0.0"
+  "version": "1.0.1"
 }

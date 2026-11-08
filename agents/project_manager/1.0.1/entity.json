@@ -1,0 +1,71 @@
+{
+  "agent_kind": "orchestrator",
+  "author": {
+    "en": "SagaAI",
+    "ru": "SagaAI",
+    "zh-CN": "SagaAI"
+  },
+  "description": {
+    "en": "AI project-management lead that runs projects from initiation to closure. Keeps a portfolio register, writes project charters with explicit scope boundaries, builds a work breakdown structure with milestones and a RACI matrix, maintains a risk register with costed consequences, prepares status reports and meeting minutes, and closes projects with a final report and lessons learned. Delegates execution to other agents by goal and acceptance criteria, then accepts the result against a five-point checklist.",
+    "ru": "ИИ-руководитель проектов: ведёт проект от инициации до закрытия. Держит реестр портфеля, оформляет устав с явными границами, строит иерархическую структуру работ с вехами и матрицу ответственности, ведёт реестр рисков со стоимостной оценкой последствий, готовит статус-отчёты и протоколы встреч, закрывает проект итоговым отчётом и извлечёнными уроками. Делегирует исполнение другим агентам по цели и критериям приёмки, принимает результат по чек-листу из пяти проверок.",
+    "zh-CN": "人工智能项目负责人：负责项目从启动到收尾的全过程。维护项目组合登记册，编写带明确范围边界的项目章程，制定带里程碑的工作分解结构和责任矩阵，维护含成本化后果的风险登记册，编制状态报告和会议纪要，并以总结报告和经验教训收尾。按目标和验收标准将执行工作委派给其他智能体，并按五项检查清单验收结果。"
+  },
+  "files": {
+    "instructions/pm_closure.md": "80a6058bb92c524fdf2e446865dfcfe3d5c8afb57fdd91d447a5bf0dd1af07a0",
+    "instructions/pm_culture.md": "d2856e5fef241b8c4744ad0b182183911e79048bddb9a54aa903b64899c231c4",
+    "instructions/pm_delegation.md": "29cdefffdc77edd538ac228654c83aeae10887034542f8ae1bce77075537cc4e",
+    "instructions/pm_finance.md": "ed5355e07c792537b51e2d5ec1b425eb293ed0f9265b748053be26dc4cad458a",
+    "instructions/pm_monitoring.md": "4efac488a43b52072ade4489d24ef72613917c075098463cd089304b8b30481c",
+    "instructions/pm_planning.md": "a571a5a59f55daedf4bdb131bc56396cb634c79696322ca34235bbf64e475a65",
+    "instructions/pm_risks.md": "a01900935acaa658e743705471eaaa120f5c3a3895f6602af117533001e3ebe3",
+    "instructions/pm_storage.md": "d850c49cbd8d5b6bea34d15349a936279f3741ffc7449e76565cf231a4289905",
+    "orchestrator.json": "16f09096e3f994ba1dfa74dcfb3bbdf090db92eb1527561938704e0ccff4d012",
+    "system_prompt.md": "bc6fede3bf94248f04c5382ee139358ecc6fbd260d77a26772984564f37d2803"
+  },
+  "icon": "📋",
+  "id": "project_manager",
+  "license": {
+    "acceptance_required": false,
+    "spdx": "PolyForm-Noncommercial-1.0.0"
+  },
+  "name": {
+    "en": "Project Manager",
+    "ru": "Менеджер проектов",
+    "zh-CN": "项目经理"
+  },
+  "package": {
+    "sha256": "7d50ec6ef32a75ee4d566eebf31fb6b3ae73fa1d5deab958ed69e2b8a41e9f8a",
+    "size": 34921,
+    "url": "agents/project_manager/1.0.1/package.tar.gz"
+  },
+  "permissions": {
+    "executes_code": false,
+    "secrets": []
+  },
+  "platform": {
+    "max": null,
+    "min": "2.30.0"
+  },
+  "requires_tools": [
+    "spawn_agent",
+    "subagent_status",
+    "subagent_result",
+    "read_subagent_state",
+    "resume_subagent",
+    "cancel_subagent",
+    "sleep",
+    "current_datetime"
+  ],
+  "schema": "sagaai.marketplace.entity/1",
+  "source_url": "https://github.com/TVD2100/sagaai-platform",
+  "tags": [
+    "project management",
+    "portfolio",
+    "risk register",
+    "WBS",
+    "RACI",
+    "status reports"
+  ],
+  "type": "agent",
+  "version": "1.0.1"
+}
