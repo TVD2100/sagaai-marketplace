@@ -1,0 +1,64 @@
+{
+  "author": {
+    "en": "SagaAI",
+    "ru": "SagaAI",
+    "zh-CN": "SagaAI"
+  },
+  "description": {
+    "en": "Yandex 360 mailbox: search and read messages, folders and labels, drafts, moving messages and deleting them to Trash. Sending mail is not supported - a prepared draft is checked and sent in the mailbox. Requires an OAuth token.",
+    "ru": "Почтовый ящик Яндекс 360: поиск и чтение писем, папки и метки, черновики, перемещение писем и удаление в Корзину. Отправка писем не поддерживается - подготовленный черновик проверяют и отправляют в Почте. Нужен OAuth-токен.",
+    "zh-CN": "Yandex 360 邮箱：搜索并阅读邮件、文件夹与标签、草稿、移动邮件并移入回收站。不支持发送邮件：准备好的草稿需在邮箱中检查并发送。需要 OAuth 令牌。"
+  },
+  "icon": "📬",
+  "id": "yandex_mail",
+  "license": {
+    "acceptance_required": false,
+    "spdx": "PolyForm-Noncommercial-1.0.0"
+  },
+  "name": {
+    "en": "Yandex Mail",
+    "ru": "Яндекс Почта",
+    "zh-CN": "Yandex 邮箱"
+  },
+  "permissions": {
+    "executes_code": false,
+    "secrets": [
+      "YANDEX_MAIL_OAUTH_TOKEN"
+    ]
+  },
+  "platform": {
+    "max": null,
+    "min": "2.18.0"
+  },
+  "preset": {
+    "config": {
+      "auth_header": "OAuth {YANDEX_MAIL_OAUTH_TOKEN}",
+      "preset": "yandex_mail",
+      "secret_env_fields": {
+        "token": {
+          "env": "YANDEX_MAIL_OAUTH_TOKEN",
+          "help": "Токен выдаётся по ссылке «получить OAuth-токен» на странице подключения MCP-сервера Яндекс Почты. Вставляйте только значение токена, без слова OAuth.",
+          "label": "OAuth-токен Яндекс Почты",
+          "password": true
+        }
+      },
+      "transport": "http",
+      "url": "https://mcp.360.yandex.net/v1/mail/mcp"
+    },
+    "id": "yandex_mail",
+    "memory_seed": "Эндпоинт: https://mcp.360.yandex.net/v1/mail/mcp (HTTP, MCP 2025-03-26). Авторизация: заголовок Authorization со схемой OAuth (не Bearer) - токен вводится в поле соединения, здесь его хранить нельзя.\n\nАгент действует от имени владельца ящика и не получает прав больше, чем у него. Подтверждение пользователя требуется перед изменяющими действиями: создание и правка черновиков, перемещение и удаление писем, добавление и снятие меток.\n\nИнструменты: mail.list_folders (папки и их id), mail.list_labels (метки и их id), mail.search_messages (поиск по теме, тексту, отправителю или получателю; одного периода недостаточно), mail.list_messages_in_folder (письма папки за период без текста), mail.list_messages_by_label (письма с меткой без текста), mail.get_message (метаданные, вложения и временные ссылки на скачивание), mail.read_message (текст письма в HTML), mail.create_draft, mail.update_draft (полная замена черновика: пропущенные поля очищаются), mail.move_messages, mail.add_message_labels, mail.remove_message_labels, mail.delete_message (перемещение в Корзину, безвозвратного удаления нет).\n\nОграничения: отправка писем не поддерживается - черновик проверяют и отправляют в Почте; за один вызов меняется до 100 писем; вложения отдаются метаданными и временными ссылками, содержимое файлов сервер не возвращает; черновик не гарантирует привязку к исходной цепочке; защиты от параллельного редактирования черновика нет; сервер - предварительная версия, интерфейсы могут меняться без обратной совместимости.\n\nЕсли поиск по заданному условию ничего не нашёл, условия не расширять самостоятельно - уточнить запрос у пользователя.",
+    "protocol_version": "2025-03-26",
+    "service": "mcp",
+    "sort_order": 30
+  },
+  "schema": "sagaai.marketplace.entity/1",
+  "tags": [
+    "mail",
+    "yandex 360",
+    "email",
+    "drafts",
+    "oauth"
+  ],
+  "type": "mcp",
+  "version": "1.0.0"
+}

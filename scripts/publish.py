@@ -24,6 +24,588 @@ from __future__ import annotations
 import argparse
 import sys
 
+import base64
+import binascii
+import hashlib
+import json
+import os
+from datetime import datetime, timezone
+from typing import Any, Dict, Optional
+
+#: Bytes of the key digest that make up a key id (16 hex characters).
+KEY_ID_BYTES = 8
+
+#: Schema of the detached signature record written next to a manifest.
+SIGNATURE_SCHEMA = "sagaai.marketplace.signature/1"
+
+#: The only signature algorithm this build knows.
+ALGORITHM = "ed25519"
+
+#: Environment variable carrying the private key: PEM text or a file path.
+SIGNING_KEY_ENV = "SAGAII_SIGNING_KEY"
+
+#: Suffix of the detached signature file.
+SIGNATURE_SUFFIX = ".sig"
+
+#: Channels that must carry a signature (fail-closed).
+STABLE_CHANNELS = ("stable",)
+
+#: Channels where an unsigned manifest is accepted with a warning.
+WARNING_CHANNELS = ("raw", "dev", "main", "beta")
+
+
+class SigningError(Exception):
+    """Raised when a key cannot be loaded or a signature cannot be written.
+
+    Carries a machine-readable ``code`` so a caller reports the failure
+    without parsing the message text.
+    """
+
+    def __init__(self, code: str, message: str, details: Optional[dict] = None) -> None:
+        super().__init__(message)
+        self.code = str(code or "signing_failed")
+        self.message = str(message or "")
+        self.details = details or {}
+
+
+# ─── small helpers ──────────────────────────────────────────────────────
+
+def _now_iso() -> str:
+    """Return the current UTC time as ``YYYY-MM-DDTHH:MM:SSZ``."""
+    return (
+        datetime.now(timezone.utc)
+        .replace(microsecond=0)
+        .isoformat()
+        .replace("+00:00", "Z")
+    )
+
+
+def sha256_hex(payload: bytes) -> str:
+    """Return the hex sha256 of *payload*."""
+    return hashlib.sha256(payload).hexdigest()
+
+
+def canonical_json(payload) -> bytes:
+    """Return the canonical JSON encoding of *payload*.
+
+    Kept for verifying signatures written by earlier releases, which
+    signed a canonical re-serialisation rather than the shipped bytes. New
+    signatures never use it: what is signed is exactly what is downloaded.
+    """
+    return json.dumps(
+        payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False
+    ).encode("utf-8")
+
+
+def signature_path(payload_path: str) -> str:
+    """Return the detached signature path of a manifest file."""
+    return str(payload_path) + SIGNATURE_SUFFIX
+
+
+def _serialization():
+    """Import and return the ``cryptography`` serialization module.
+
+    The import is lazy so importing :mod:`core.signing` never fails on a
+    machine that has no ``cryptography``: only a signing or verification
+    call needs it, and the platform declares it as a required dependency.
+    """
+    from cryptography.hazmat.primitives import serialization
+
+    return serialization
+
+
+def _ed25519_private():
+    """Return the Ed25519 private key class."""
+    from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+
+    return Ed25519PrivateKey
+
+
+def _ed25519_public():
+    """Return the Ed25519 public key class."""
+    from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
+
+    return Ed25519PublicKey
+
+
+# ─── Key ids ───────────────────────────────────────────────────────────
+
+def public_key_der(public_key) -> bytes:
+    """Return the DER encoding (SubjectPublicKeyInfo) of a public key."""
+    serialization = _serialization()
+    return public_key.public_bytes(
+        encoding=serialization.Encoding.DER,
+        format=serialization.PublicFormat.SubjectPublicKeyInfo,
+    )
+
+
+def public_key_pem(public_key) -> bytes:
+    """Return the PEM encoding of a public key."""
+    serialization = _serialization()
+    return public_key.public_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PublicFormat.SubjectPublicKeyInfo,
+    )
+
+
+def key_id_from_public(public_key) -> str:
+    """Return the key id of a public key: 8 bytes of its DER digest.
+
+    Deriving the identifier from the key itself is what stops one key from
+    presenting another key's id: the client recomputes it from the bytes it
+    holds and looks the key up by the result.
+    """
+    return hashlib.sha256(public_key_der(public_key)).hexdigest()[: KEY_ID_BYTES * 2]
+
+
+def key_id_from_pem(raw: bytes) -> str:
+    """Return the key id of a PEM-encoded public key."""
+    return key_id_from_public(load_public_key_bytes(raw))
+
+
+def key_id_of(key) -> str:
+    """Return the key id of a private or public key object."""
+    public = key.public_key() if hasattr(key, "public_key") else key
+    return key_id_from_public(public)
+
+
+def key_id_of_private(path: Optional[str] = None) -> str:
+    """Return the key id of the private key at *path* or in the environment.
+
+    The publisher names ``keys/<key_id>.pub`` after this value, so the file
+    name and the key inside it are derived from one source.
+    """
+    return key_id_of(load_private_key(path))
+
+
+# ─── Key loading ──────────────────────────────────────────────────────
+
+def load_public_key_bytes(raw: bytes):
+    """Return the Ed25519 public key encoded in *raw*, or raise.
+
+    A key of another algorithm is refused rather than accepted: the whole
+    trust model rests on the key being Ed25519.
+    """
+    serialization = _serialization()
+    try:
+        key = serialization.load_pem_public_key(raw)
+    except Exception as exc:  # noqa: BLE001 - any parse failure is the same refusal
+        raise SigningError(
+            "key_unreadable",
+            "Public key is not a readable PEM document",
+            {"error": str(exc)},
+        ) from exc
+    if not isinstance(key, _ed25519_public()):
+        raise SigningError(
+            "key_not_ed25519",
+            "Public key is not an Ed25519 key",
+            {"type": type(key).__name__},
+        )
+    return key
+
+
+def load_public_key(path: str):
+    """Load an Ed25519 public key from *path*, or raise :class:`SigningError`."""
+    try:
+        with open(path, "rb") as handle:
+            raw = handle.read()
+    except OSError as exc:
+        raise SigningError(
+            "key_missing", f"Public key not found: {path}", {"path": str(path)}
+        ) from exc
+    return load_public_key_bytes(raw)
+
+
+def load_private_key(path: Optional[str] = None, env_var: str = SIGNING_KEY_ENV):
+    """Load the Ed25519 private key from *path* or from the environment.
+
+    The environment form accepts either the PEM text itself (what a CI
+    secret holds) or a path to the file. Signing without a key is an error:
+    a publish run must never fall back to emitting unsigned output.
+    """
+    serialization = _serialization()
+    raw: Optional[bytes] = None
+    source = str(path or "").strip()
+    if source:
+        try:
+            with open(source, "rb") as handle:
+                raw = handle.read()
+        except OSError as exc:
+            raise SigningError(
+                "key_missing", f"Signing key not found: {source}", {"path": source}
+            ) from exc
+    else:
+        value = os.environ.get(env_var, "")
+        text = value.strip()
+        if not text:
+            raise SigningError(
+                "key_missing",
+                f"No signing key: pass a path or set {env_var}",
+                {"env": env_var},
+            )
+        if "BEGIN" in text:
+            raw = text.encode("utf-8")
+        else:
+            try:
+                with open(os.path.expanduser(text), "rb") as handle:
+                    raw = handle.read()
+            except OSError as exc:
+                raise SigningError(
+                    "key_missing",
+                    f"Signing key not found: {text}",
+                    {"path": text, "env": env_var},
+                ) from exc
+    try:
+        key = serialization.load_pem_private_key(raw, password=None)
+    except Exception as exc:  # noqa: BLE001 - any parse failure is the same refusal
+        raise SigningError(
+            "key_unreadable",
+            "Signing key is not a readable unencrypted PEM private key",
+            {"error": str(exc)},
+        ) from exc
+    if not isinstance(key, _ed25519_private()):
+        raise SigningError(
+            "key_not_ed25519",
+            "Signing key is not an Ed25519 key",
+            {"type": type(key).__name__},
+        )
+    return key
+
+
+def generate_keypair(private_path: str, public_path: str, key_id: str = "") -> dict:
+    """Create an Ed25519 pair, write both halves and return their ids.
+
+    The private half is written with owner-only permissions; nothing here
+    checks where the caller puts it, but every tool in this repository
+    writes it outside the working tree. *key_id* is accepted for callers
+    written against the earlier publisher and ignored: the identifier is
+    derived from the key, so it can never disagree with a signature.
+    """
+    serialization = _serialization()
+    private = _ed25519_private().generate()
+    private_pem = private.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.PKCS8,
+        encryption_algorithm=serialization.NoEncryption(),
+    )
+    public_pem = public_key_pem(private.public_key())
+    os.makedirs(os.path.dirname(os.path.abspath(private_path)), exist_ok=True)
+    with open(private_path, "wb") as handle:
+        handle.write(private_pem)
+    try:
+        os.chmod(private_path, 0o600)
+    except OSError:
+        pass
+    os.makedirs(os.path.dirname(os.path.abspath(public_path)), exist_ok=True)
+    with open(public_path, "wb") as handle:
+        handle.write(public_pem)
+    return {
+        "ok": True,
+        "key_id": key_id_from_public(private.public_key()),
+        "public_key": str(public_path),
+        "private_key": str(private_path),
+        "fingerprint": sha256_hex(public_pem),
+    }
+
+
+# ─── Keyring ──────────────────────────────────────────────────────────
+
+def keyring_paths(key_dir: str) -> list:
+    """Return the public key files of a keyring folder, sorted.
+
+    Both ``.pem`` and ``.pub`` files are read: the repository ships
+    ``keys/ed25519-public.pem`` while a catalog may keep ``<key_id>.pub``.
+    """
+    folder = str(key_dir or "")
+    if not folder or not os.path.isdir(folder):
+        return []
+    names = sorted(os.listdir(folder))
+    return [
+        os.path.join(folder, name)
+        for name in names
+        if name.lower().endswith((".pem", ".pub")) and not name.startswith(".")
+    ]
+
+
+def load_keyring(key_dir: str) -> Dict[str, Any]:
+    """Return ``{key_id: public key}`` for every key file in *key_dir*.
+
+    A file that cannot be read is skipped rather than fatal: one broken key
+    in the folder must not stop the others from being trusted. The count of
+    skipped files is available through :func:`keyring_report`.
+    """
+    ring: Dict[str, Any] = {}
+    for path in keyring_paths(key_dir):
+        try:
+            key = load_public_key(path)
+        except SigningError:
+            continue
+        ring[key_id_from_public(key)] = key
+    return ring
+
+
+def keyring_report(key_dir: str) -> dict:
+    """Return which key files are trusted and which could not be read."""
+    trusted = []
+    skipped = []
+    for path in keyring_paths(key_dir):
+        try:
+            key = load_public_key(path)
+        except SigningError as exc:
+            skipped.append({"path": path, "reason": exc.code})
+            continue
+        trusted.append({"path": path, "key_id": key_id_from_public(key)})
+    return {"ok": True, "dir": str(key_dir), "trusted": trusted, "skipped": skipped}
+
+
+# ─── Signing and verification ────────────────────────────────────────
+
+def sign_bytes(payload: bytes, private_key, key_id: Optional[str] = None) -> dict:
+    """Sign *payload* and return the detached signature record.
+
+    The signature covers the bytes as they are: a caller that re-serialises
+    a document between signing and shipping breaks verification, which is
+    the intended behaviour - what is signed must be what is downloaded.
+    """
+    signature = private_key.sign(payload)
+    return {
+        "schema": SIGNATURE_SCHEMA,
+        "algorithm": ALGORITHM,
+        "key_id": str(key_id or key_id_of(private_key)),
+        "signature": base64.b64encode(signature).decode("ascii"),
+        "signed_sha256": sha256_hex(payload),
+        "signed_at": _now_iso(),
+    }
+
+
+def write_json_file(path: str, payload: dict) -> None:
+    """Write *payload* as indented JSON with a trailing newline, atomically."""
+    directory = os.path.dirname(os.path.abspath(path))
+    os.makedirs(directory, exist_ok=True)
+    tmp = f"{path}.tmp-{os.getpid()}"
+    try:
+        with open(tmp, "w", encoding="utf-8") as handle:
+            json.dump(payload, handle, ensure_ascii=False, indent=2, sort_keys=True)
+            handle.write("\n")
+        os.replace(tmp, path)
+    finally:
+        if os.path.exists(tmp):
+            try:
+                os.remove(tmp)
+            except OSError:
+                pass
+
+
+def write_signature(
+    payload_path: str,
+    private_key_path: Optional[str] = None,
+    key_id: Optional[str] = None,
+) -> dict:
+    """Sign the file at *payload_path* and write ``<payload>.sig``.
+
+    Returns the record written. A missing key raises: a publish step that
+    cannot sign must stop, not quietly produce an unsigned release.
+    """
+    with open(payload_path, "rb") as handle:
+        payload = handle.read()
+    private_key = load_private_key(private_key_path)
+    record = sign_bytes(payload, private_key, key_id=key_id)
+    write_json_file(signature_path(payload_path), record)
+    return record
+
+
+def read_signature(path: str) -> Optional[dict]:
+    """Read a signature file; None when it is missing or unreadable."""
+    try:
+        with open(path, "r", encoding="utf-8") as handle:
+            data = json.load(handle)
+    except (OSError, ValueError):
+        return None
+    return data if isinstance(data, dict) else None
+
+
+def _decode_signature(record: dict) -> Optional[bytes]:
+    """Decode the base64 signature of a record; None when malformed."""
+    text = str(record.get("signature") or "").strip()
+    if not text:
+        return None
+    try:
+        return base64.b64decode(text, validate=True)
+    except (binascii.Error, ValueError):
+        return None
+
+
+def _decode_legacy_signature(record: dict) -> Optional[bytes]:
+    """Decode the hex signature of a record written by an earlier release."""
+    text = str(record.get("signature") or "").strip()
+    if not text:
+        return None
+    try:
+        raw = bytes.fromhex(text)
+    except ValueError:
+        return None
+    return raw or None
+
+
+def verify_bytes(
+    payload: bytes,
+    record: Optional[dict],
+    keys: Dict[str, Any],
+    legacy_document: Optional[dict] = None,
+) -> dict:
+    """Verify a detached signature over *payload* against a keyring.
+
+    Returns ``{"ok", "key_id", "reason"}``. Reasons:
+
+    ``verified``           the signature matches and the key is trusted;
+    ``signature_missing``  there is no signature record at all;
+    ``signature_malformed`` the record cannot be parsed or decoded;
+    ``unknown_key_id``     the record names a key the keyring does not hold;
+    ``signature_invalid``  the bytes do not match the signature.
+
+    An unknown key id is a refusal: accepting it would let anybody publish
+    under a key of their own choice.
+
+    A record written by an earlier release carries a hex signature over the
+    canonical JSON of the parsed document. *legacy_document* lets such a
+    record verify as well, so publishing an update does not invalidate an
+    already shipped catalog; new records never take that path.
+    """
+    if not isinstance(record, dict):
+        return {"ok": False, "key_id": None, "reason": "signature_missing"}
+    key_id = str(record.get("key_id") or "").strip()
+    algorithm = str(record.get("algorithm") or ALGORITHM).strip().lower()
+    if algorithm != ALGORITHM:
+        return {"ok": False, "key_id": key_id or None, "reason": "signature_malformed"}
+    signature = _decode_signature(record)
+    message = payload
+    if signature is None:
+        signature = _decode_legacy_signature(record)
+        if signature is None or legacy_document is None:
+            return {"ok": False, "key_id": key_id or None, "reason": "signature_malformed"}
+        message = canonical_json(legacy_document)
+    if not key_id:
+        return {"ok": False, "key_id": None, "reason": "signature_malformed"}
+    key = (keys or {}).get(key_id)
+    if key is None:
+        return {"ok": False, "key_id": key_id, "reason": "unknown_key_id"}
+    from cryptography.exceptions import InvalidSignature
+
+    try:
+        key.verify(signature, message)
+    except InvalidSignature:
+        return {"ok": False, "key_id": key_id, "reason": "signature_invalid"}
+    return {"ok": True, "key_id": key_id, "reason": "verified"}
+
+
+def verify_file(
+    payload_path: str,
+    key_dir: Optional[str] = None,
+    keys: Optional[Dict[str, Any]] = None,
+    signature_file: Optional[str] = None,
+) -> dict:
+    """Verify the detached signature of a manifest on disk.
+
+    With *keys* the keyring is given directly; otherwise it is loaded from
+    *key_dir*. Either way the check is local - no key is ever downloaded.
+    """
+    path = str(payload_path)
+    record = read_signature(signature_file or signature_path(path))
+    if record is None:
+        return {"ok": False, "key_id": None, "reason": "signature_missing", "path": path}
+    ring = keys if keys is not None else load_keyring(key_dir or "")
+    try:
+        with open(path, "rb") as handle:
+            payload = handle.read()
+    except OSError:
+        return {"ok": False, "key_id": None, "reason": "payload_missing", "path": path}
+    legacy_document = None
+    if _decode_signature(record) is None:
+        try:
+            parsed = json.loads(payload.decode("utf-8"))
+        except (ValueError, UnicodeDecodeError):
+            parsed = None
+        legacy_document = parsed if isinstance(parsed, dict) else None
+    result = verify_bytes(payload, record, ring, legacy_document=legacy_document)
+    result["path"] = path
+    declared = str(record.get("signed_sha256") or "")
+    if result["ok"] and declared and declared != sha256_hex(payload):
+        # The signature already covers the bytes; this extra check only makes
+        # a hand-edited record say so instead of failing on the key check.
+        result = {"ok": False, "key_id": result.get("key_id"), "reason": "signature_invalid", "path": path}
+    return result
+
+
+# ─── Channel policy ─────────────────────────────────────────────────────
+
+def channel_name(channel: Optional[str]) -> str:
+    """Return the bare channel name of a channel URL or name.
+
+    A channel may be given as a URL (``https://host/TVD2100/repo/main``) or
+    as a name (``stable``); only the trailing segment decides the policy.
+    """
+    text = str(channel or "").strip().rstrip("/")
+    if not text:
+        return "stable"
+    if "://" in text or os.sep in text:
+        return text.rsplit("/", 1)[-1].strip() or "stable"
+    return text
+
+
+def channel_policy(channel: Optional[str], require_signature: bool = False) -> dict:
+    """Return how a channel treats an unsigned manifest.
+
+    ``enforced`` means a missing or invalid signature is a refusal. The
+    explicit setting wins: a user who turned signatures on keeps them on for
+    a development channel as well.
+    """
+    name = channel_name(channel)
+    enforced = bool(require_signature) or name in STABLE_CHANNELS
+    return {
+        "channel": name,
+        "enforced": enforced,
+        "warn": not enforced,
+        "mode": "require" if enforced else "warn",
+        "reason": (
+            "signature required on the stable channel"
+            if name in STABLE_CHANNELS
+            else ("signature required by the marketplace setting" if require_signature
+                  else "unsigned manifests are accepted with a warning")
+        ),
+    }
+
+
+def policy_for(channel: Optional[str], settings: Optional[dict] = None) -> dict:
+    """Return the channel policy from marketplace settings (or a plain channel)."""
+    settings = settings or {}
+    return channel_policy(
+        channel or settings.get("channel") or "main",
+        bool(settings.get("require_signature")),
+    )
+
+
+# ─── Journal ───────────────────────────────────────────────────────────────
+
+def append_journal(path: str, record: dict) -> bool:
+    """Append one JSON line to a journal; False when it could not be written.
+
+    The journal is the durable trace of an accepted-unsigned decision: a
+    warning the user dismissed must still be findable afterwards. A failure
+    to write it never fails the operation it describes.
+    """
+    if not path:
+        return False
+    entry = {"at": _now_iso()}
+    entry.update(record or {})
+    try:
+        directory = os.path.dirname(os.path.abspath(path))
+        os.makedirs(directory, exist_ok=True)
+        with open(path, "a", encoding="utf-8") as handle:
+            handle.write(json.dumps(entry, ensure_ascii=False, sort_keys=True) + "\n")
+    except OSError:
+        return False
+    return True
+
 import gzip
 import hashlib
 import io
@@ -33,6 +615,7 @@ import re
 import tarfile
 from datetime import datetime, timezone
 from typing import Dict, List, Optional, Tuple
+
 
 #: Index schema written by :func:`rebuild_index`.
 INDEX_SCHEMA = "sagaai.marketplace.index/1"
@@ -95,19 +678,6 @@ def _now_iso() -> str:
 def sha256_bytes(data: bytes) -> str:
     """Return the hex sha256 of *data*."""
     return hashlib.sha256(data).hexdigest()
-
-
-def canonical_json(payload) -> bytes:
-    """Return the canonical JSON encoding of *payload*.
-
-    Sorted keys, no insignificant whitespace, UTF-8 without ASCII escaping.
-    A signature is computed over exactly these bytes, so the platform must be
-    able to reproduce them from the parsed document - which is why the
-    encoding is fixed here instead of using ``json.dumps`` defaults.
-    """
-    return json.dumps(
-        payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False
-    ).encode("utf-8")
 
 
 #: Agent kinds a publisher may ship. An agent entity is either an
@@ -298,6 +868,57 @@ def _write_json(path: str, payload: dict) -> None:
         handle.write("\n")
 
 
+def _check_republish(
+    target: str,
+    manifest_path: str,
+    package_path: str,
+    extra: Dict[str, bytes],
+    full: dict,
+    package: bytes,
+    entity_id: str,
+    version: str,
+) -> bool:
+    """Return True when the version must be written, refuse a content change.
+
+    Identical bytes are a no-op; the same version with other content is
+    refused, because a client that pinned it would receive unreviewed bytes.
+    """
+    if not os.path.isfile(manifest_path):
+        return True
+    existing_package = b""
+    if os.path.isfile(package_path):
+        with open(package_path, "rb") as handle:
+            existing_package = handle.read()
+    same_extra = True
+    for name, payload in extra.items():
+        existing_extra = os.path.join(target, name)
+        if not os.path.isfile(existing_extra):
+            same_extra = False
+            break
+        with open(existing_extra, "rb") as handle:
+            if handle.read() != payload:
+                same_extra = False
+                break
+    if _read_json(manifest_path) == full and existing_package == package and same_extra:
+        return False
+    raise PublishError(
+        "version_exists",
+        f"Version {version} of '{entity_id}' is already published with other content",
+        {"id": entity_id, "version": version},
+    )
+
+
+def _maybe_sign(path: str, private_key_path: Optional[str]) -> None:
+    """Sign *path* when a key is configured; leave it alone otherwise.
+
+    ``publish_entity`` is also called by tooling that only rewrites a tree
+    (a rebuild, a migration); such a caller has no key and must not be forced
+    to have one. The publishing entry point itself has no such choice.
+    """
+    if private_key_path or os.environ.get(SIGNING_KEY_ENV, "").strip():
+        sign_manifest(path, private_key_path)
+
+
 def publish_entity(
     root: str,
     entity_folder: Optional[str],
@@ -305,19 +926,20 @@ def publish_entity(
     *,
     package_name: str = "package.tar.gz",
     extra_files: Optional[Dict[str, bytes]] = None,
+    private_key_path: Optional[str] = None,
 ) -> dict:
     """Publish one version of an entity into a catalog tree.
 
-    The package and its manifest are written once, into the versioned folder;
-    ``latest/entity.json`` is then refreshed to point at the newest version.
-    Publishing the same version twice with the same content is a no-op, and
-    with different content it is refused: a published version never changes
-    under a client that pinned it.
+    The package and its manifest are written once into the versioned folder;
+    ``latest/entity.json`` is then refreshed. Re-publishing the same version
+    with the same content is a no-op, with other content it is refused: a
+    published version never changes under a client that pinned it.
 
     *entity_folder* may be ``None`` for an entity that ships no files (an MCP
-    server is a preset, nothing else): its manifest then carries neither
-    ``files`` nor ``package``, which is exactly what the installer expects -
-    a package block the catalog cannot serve would be a promise it breaks.
+    server is a preset): its manifest then carries neither ``files`` nor
+    ``package``, which is what the installer expects - a package block the
+    catalog cannot serve would be a promise it breaks. *private_key_path*
+    signs the manifest and the refreshed pointer.
 
     Returns a report with ``type``, ``id``, ``version``, ``path``,
     ``package_sha256`` and ``changed``.
@@ -367,32 +989,9 @@ def publish_entity(
         full["distribution"] = distribution
 
     package_path = os.path.join(target, package_name)
-    changed = True
-    if os.path.isfile(manifest_path):
-        existing_manifest = _read_json(manifest_path)
-        existing_package = b""
-        if os.path.isfile(package_path):
-            with open(package_path, "rb") as handle:
-                existing_package = handle.read()
-        same_extra = True
-        for name, payload in extra.items():
-            existing_extra = os.path.join(target, name)
-            if not os.path.isfile(existing_extra):
-                same_extra = False
-                break
-            with open(existing_extra, "rb") as handle:
-                if handle.read() != payload:
-                    same_extra = False
-                    break
-        if (existing_manifest is not None and existing_manifest == full
-                and existing_package == package and same_extra):
-            changed = False
-        else:
-            raise PublishError(
-                "version_exists",
-                f"Version {version} of '{entity_id}' is already published with other content",
-                {"id": entity_id, "version": version},
-            )
+    changed = _check_republish(
+        target, manifest_path, package_path, extra, full, package, entity_id, version
+    )
     if changed:
         os.makedirs(target, exist_ok=True)
         if package:
@@ -402,8 +1001,9 @@ def publish_entity(
             with open(os.path.join(target, name), "wb") as handle:
                 handle.write(payload)
         _write_json(manifest_path, full)
+        _maybe_sign(manifest_path, private_key_path)
 
-    _refresh_latest(root, type_, entity_id)
+    _refresh_latest(root, type_, entity_id, private_key_path=private_key_path)
     return {
         "ok": True,
         "type": type_,
@@ -434,8 +1034,18 @@ def _version_key(version: str) -> tuple:
     return (parts, 0 if pre else 1, pre)
 
 
-def _refresh_latest(root: str, type_: str, entity_id: str) -> Optional[str]:
-    """Point ``<type>/<id>/latest/entity.json`` at the newest version."""
+def _refresh_latest(
+    root: str,
+    type_: str,
+    entity_id: str,
+    *,
+    private_key_path: Optional[str] = None,
+) -> Optional[str]:
+    """Point ``<type>/<id>/latest/entity.json`` at the newest version.
+
+    The pointer is signed when a key is available: it is the file a client
+    fetches to ask for the newest release.
+    """
     versions = list_versions(root, type_, entity_id)
     if not versions:
         return None
@@ -452,6 +1062,7 @@ def _refresh_latest(root: str, type_: str, entity_id: str) -> Optional[str]:
         root, type_folder(type_), entity_id, "latest", "entity.json"
     )
     _write_json(latest_path, payload)
+    _maybe_sign(latest_path, private_key_path)
     return newest
 
 
@@ -561,132 +1172,89 @@ def rebuild_index(
     return index
 
 
-# ─── Signature ────────────────────────────────────────────────────────────
+# ─── Signature ─────────────────────────────────────────────────────
 
-def _load_signing_key(private_key_path: str):
-    """Return the Ed25519 private key stored at *private_key_path*."""
-    from cryptography.hazmat.primitives import serialization
-
-    try:
-        with open(private_key_path, "rb") as handle:
-            raw = handle.read()
-    except OSError as exc:
-        raise PublishError(
-            "key_missing", f"Signing key not found: {private_key_path}", {"path": private_key_path}
-        ) from exc
-    try:
-        return serialization.load_pem_private_key(raw, password=None)
-    except Exception as exc:
-        raise PublishError(
-            "invalid_key", f"Signing key is not a readable private key: {exc}", {}
-        ) from exc
+def _publish_error(exc) -> "PublishError":
+    """Translate a signing failure into a publish refusal."""
+    return PublishError(
+        str(getattr(exc, "code", "signing_failed")),
+        str(getattr(exc, "message", exc)),
+        dict(getattr(exc, "details", {}) or {}),
+    )
 
 
-def generate_keypair(private_key_path: str, public_key_path: str, key_id: str) -> dict:
-    """Create an Ed25519 key pair and write both halves to disk.
+def resolve_signing_key(private_key_path: Optional[str]) -> Optional[str]:
+    """Return the signing key path, or None when the environment holds it.
 
-    The private key is written with owner-only permissions and never leaves
-    the publisher's machine; the public key is what ships in ``keys/``.
-    Returns ``{"key_id", "public_key", "private_key", "fingerprint"}``.
+    Publishing has no unsigned mode: without a key the run is refused here
+    rather than producing a release nobody can verify.
     """
-    from cryptography.hazmat.primitives import serialization
-    from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+    source = str(private_key_path or "").strip()
+    if source:
+        return source
+    if os.environ.get(SIGNING_KEY_ENV, "").strip():
+        return None
+    raise PublishError(
+        "signing_key_missing",
+        "Publishing requires the Ed25519 private key: pass --sign-key or set "
+        + SIGNING_KEY_ENV,
+        {},
+    )
 
-    private = Ed25519PrivateKey.generate()
-    private_pem = private.private_bytes(
-        encoding=serialization.Encoding.PEM,
-        format=serialization.PrivateFormat.PKCS8,
-        encryption_algorithm=serialization.NoEncryption(),
-    )
-    public_pem = private.public_key().public_bytes(
-        encoding=serialization.Encoding.PEM,
-        format=serialization.PublicFormat.SubjectPublicKeyInfo,
-    )
-    os.makedirs(os.path.dirname(os.path.abspath(private_key_path)), exist_ok=True)
-    with open(private_key_path, "wb") as handle:
-        handle.write(private_pem)
+
+def sign_manifest(manifest_path: str, private_key_path: Optional[str] = "") -> dict:
+    """Sign one manifest and drop ``<manifest>.sig`` beside it.
+
+    An entity manifest is signed at publish time, so an installation can tell
+    an entry written by the key holder from one planted in the channel.
+    """
     try:
-        os.chmod(private_key_path, 0o600)
-    except OSError:
-        pass
-    os.makedirs(os.path.dirname(os.path.abspath(public_key_path)), exist_ok=True)
-    with open(public_key_path, "wb") as handle:
-        handle.write(public_pem)
-    return {
-        "key_id": key_id,
-        "public_key": public_key_path,
-        "private_key": private_key_path,
-        "fingerprint": sha256_bytes(public_pem),
-    }
+        return write_signature(manifest_path, private_key_path or None)
+    except SigningError as exc:
+        raise _publish_error(exc) from exc
 
 
-def sign_index(root: str, private_key_path: str, key_id: str) -> dict:
-    """Sign ``index.json`` and write ``index.json.sig``.
+def sign_index(root: str, private_key_path: Optional[str] = "") -> dict:
+    """Sign the bytes of ``index.json`` and write ``index.json.sig``.
 
-    The signature covers the canonical JSON of the whole index, so any change
-    to any entry invalidates it. Returns the signature record that was
-    written.
+    The signature covers the file as stored, so a client verifies the very
+    bytes it downloaded. Returns the record that was written.
     """
     index_path = os.path.join(root, "index.json")
-    payload = _read_json(index_path)
-    if payload is None:
+    if not os.path.isfile(index_path):
         raise PublishError("index_missing", "index.json is missing or unreadable", {})
-    private = _load_signing_key(private_key_path)
-    message = canonical_json(payload)
-    signature = private.sign(message)
-    record = {
-        "schema": "sagaai.marketplace.signature/1",
-        "algorithm": "ed25519",
-        "key_id": str(key_id or ""),
-        "index_sha256": sha256_bytes(message),
-        "signature": signature.hex(),
-        "signed_at": _now_iso(),
-    }
-    _write_json(os.path.join(root, "index.json.sig"), record)
-    return record
+    return sign_manifest(index_path, private_key_path)
 
 
 def verify_index_signature(root: str, public_key_path: str) -> dict:
-    """Check ``index.json.sig`` against ``index.json`` and a public key.
+    """Check ``index.json.sig`` against ``index.json`` and a trusted key.
 
-    Returns ``{"ok": bool, "reason": str}``; a missing signature is reported
-    as ``signature_missing`` instead of raising, so a caller can decide
-    whether an unsigned catalog is acceptable.
+    *public_key_path* may be one PEM file or a keyring folder; a folder trusts
+    every readable key in it, which lets a retiring key and its replacement
+    verify at the same time. A missing signature is reported, not raised.
     """
-    from cryptography.exceptions import InvalidSignature
-    from cryptography.hazmat.primitives import serialization
-    from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
-
-    record = _read_json(os.path.join(root, "index.json.sig"))
-    payload = _read_json(os.path.join(root, "index.json"))
-    if payload is None:
+    index_path = os.path.join(root, "index.json")
+    if not os.path.isfile(index_path):
         return {"ok": False, "reason": "index_missing"}
-    if record is None:
+    if not os.path.isfile(index_path + ".sig"):
         return {"ok": False, "reason": "signature_missing"}
-    try:
-        with open(public_key_path, "rb") as handle:
-            raw = handle.read()
-        key = serialization.load_pem_public_key(raw)
-        if not isinstance(key, Ed25519PublicKey):
-            return {"ok": False, "reason": "key_is_not_ed25519"}
-    except Exception as exc:
-        return {"ok": False, "reason": f"key_unreadable: {exc}"}
-    message = canonical_json(payload)
-    digest = sha256_bytes(message)
-    if str(record.get("index_sha256") or "") != digest:
-        return {"ok": False, "reason": "index_changed"}
-    try:
-        signature = bytes.fromhex(str(record.get("signature") or ""))
-    except ValueError:
-        return {"ok": False, "reason": "signature_malformed"}
-    try:
-        key.verify(signature, message)
-    except InvalidSignature:
-        return {"ok": False, "reason": "signature_invalid"}
-    return {"ok": True, "reason": "verified", "key_id": record.get("key_id")}
+    path = str(public_key_path or "")
+    key_dir = path if os.path.isdir(path) else None
+    keys = None
+    if key_dir is None:
+        try:
+            key = load_public_key(path)
+        except SigningError:
+            return {"ok": False, "reason": "key_unreadable"}
+        keys = {key_id_of(key): key}
+    result = verify_file(index_path, key_dir=key_dir, keys=keys)
+    reason = str(result.get("reason") or "")
+    if reason == "signature_invalid":
+        reason = "index_changed"
+    return {"ok": bool(result.get("ok")), "reason": reason, "key_id": result.get("key_id")}
 
 
-# ─── One-call publish ─────────────────────────────────────────────────────
+# ─── One-call publish ──────────────────────────────────────────────────
 
 def publish(
     root: str,
@@ -694,27 +1262,30 @@ def publish(
     manifest: dict,
     *,
     private_key_path: Optional[str] = None,
-    key_id: str = "sagaai-marketplace-2026",
+    key_id: str = "",
     channel: str = "main",
 ) -> dict:
-    """Publish one entity version and refresh (and optionally sign) the index.
+    """Publish one entity version, sign every manifest and sign the index.
 
-    This is the call ``scripts/publish.py`` makes: write the immutable
-    version, refresh the pointers, rebuild the index, sign it last.
+    The order is the contract: the immutable version is written, its manifest
+    is signed, the pointers are refreshed, the index is rebuilt and signed
+    last. A run without a key is refused before anything is written: an
+    unsigned release looks exactly like a signed one to a client that cannot
+    check it. *key_id* is accepted for compatibility and ignored.
     """
-    report = publish_entity(root, entity_folder, manifest)
+    signing_key = resolve_signing_key(private_key_path)
+    report = publish_entity(root, entity_folder, manifest, private_key_path=signing_key)
     index = rebuild_index(root, channel=channel)
-    signature = None
-    if private_key_path:
-        signature = sign_index(root, private_key_path, key_id)
-    verification = None
-    if private_key_path:
-        public_path = os.path.join(root, "keys", f"{key_id}.pub")
-        if os.path.isfile(public_path):
-            verification = verify_index_signature(root, public_path)
+    index_record = sign_index(root, signing_key)
+    keys_dir = os.path.join(root, "keys")
+    entity_path = os.path.join(root, str(report.get("path") or ""))
+    entity_check = verify_file(entity_path, key_dir=keys_dir) if os.path.isfile(entity_path) else {}
+    index_check = verify_index_signature(root, keys_dir)
     report["index_entities"] = len(index.get("entities") or [])
-    report["signed"] = bool(signature)
-    report["signature_verified"] = bool((verification or {}).get("ok"))
+    report["key_id"] = index_record.get("key_id")
+    report["signed"] = True
+    report["signature_verified"] = bool(entity_check.get("ok"))
+    report["index_signature_verified"] = bool(index_check.get("ok"))
     return report
 
 def _read_manifest(path: str, type_: str, entity_id: str, version: str) -> dict:
@@ -750,7 +1321,10 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--version", help="semver of the version being published")
     parser.add_argument("--path", help="folder that holds the entity files")
     parser.add_argument("--manifest", default="", help="descriptive entity.json")
-    parser.add_argument("--key-id", default="sagaai-marketplace-2026")
+    parser.add_argument("--key-id", default="",
+                        help="accepted for compatibility; the id comes from the key")
+    parser.add_argument("--public-key", default="",
+                        help="keyring folder or PEM file used by --verify-only")
     parser.add_argument("--sign-key", default="", help="Ed25519 private key (PEM)")
     parser.add_argument("--channel", default="main", help="channel recorded in the index")
     parser.add_argument("--init-key", action="store_true",
@@ -784,15 +1358,24 @@ def _run(args) -> int:
     root = os.path.abspath(args.root)
 
     if args.verify_only:
-        public_path = os.path.join(root, "keys", f"{args.key_id}.pub")
-        check = verify_index_signature(root, public_path)
+        # The keyring is the trust anchor: every key in it verifies, so a
+        # rotation keeps the catalog readable under either key.
+        keys_dir = args.public_key or os.path.join(root, "keys")
+        check = verify_index_signature(root, keys_dir)
         print(json.dumps(check, ensure_ascii=False, indent=2))
         return 0 if check.get("ok") else 1
 
     if args.init_key:
         private_path = args.private_key or os.path.expanduser("~/.sagaai/marketplace.pem")
-        public_path = os.path.join(root, "keys", f"{args.key_id}.pub")
-        report = generate_keypair(private_path, public_path, args.key_id)
+        keys_dir = os.path.join(root, "keys")
+        os.makedirs(keys_dir, exist_ok=True)
+        staging = os.path.join(keys_dir, ".pending.pub")
+        report = generate_keypair(private_path, staging)
+        # The public half is named after the key it holds, so the file name and
+        # the signature record can never disagree.
+        public_path = os.path.join(keys_dir, f"{report['key_id']}.pub")
+        os.replace(staging, public_path)
+        report["public_path"] = public_path
         print(json.dumps(report, ensure_ascii=False, indent=2))
         print("Keep the private key out of the repository.", file=sys.stderr)
         return 0

@@ -227,6 +227,43 @@
         "zh-CN": "SagaAI"
       },
       "description": {
+        "en": "Yandex 360 mailbox: search and read messages, folders and labels, drafts, moving messages and deleting them to Trash. Sending mail is not supported - a prepared draft is checked and sent in the mailbox. Requires an OAuth token.",
+        "ru": "Почтовый ящик Яндекс 360: поиск и чтение писем, папки и метки, черновики, перемещение писем и удаление в Корзину. Отправка писем не поддерживается - подготовленный черновик проверяют и отправляют в Почте. Нужен OAuth-токен.",
+        "zh-CN": "Yandex 360 邮箱：搜索并阅读邮件、文件夹与标签、草稿、移动邮件并移入回收站。不支持发送邮件：准备好的草稿需在邮箱中检查并发送。需要 OAuth 令牌。"
+      },
+      "icon": "📬",
+      "id": "yandex_mail",
+      "license": {
+        "acceptance_required": false,
+        "spdx": "PolyForm-Noncommercial-1.0.0"
+      },
+      "name": {
+        "en": "Yandex Mail",
+        "ru": "Яндекс Почта",
+        "zh-CN": "Yandex 邮箱"
+      },
+      "path": "mcp/yandex_mail/1.0.0",
+      "platform": {
+        "max": null,
+        "min": "2.18.0"
+      },
+      "tags": [
+        "mail",
+        "yandex 360",
+        "email",
+        "drafts",
+        "oauth"
+      ],
+      "type": "mcp",
+      "version": "1.0.0"
+    },
+    {
+      "author": {
+        "en": "SagaAI",
+        "ru": "SagaAI",
+        "zh-CN": "SagaAI"
+      },
+      "description": {
         "en": "Complete knowledge base of Yandex Cloud documentation for the YaAgentAI skill: 1705 files, 2013 chunks of 1800 characters with document/product/section headers.",
         "ru": "Полная база знаний по документации Yandex Cloud для навыка YaAgentAI: 1705 файлов, 2013 чанков по 1800 символов с заголовками Документ/Продукт/Раздел.",
         "zh-CN": "YaAgentAI 技能使用的 Yandex Cloud 文档完整知识库：1705 个文件，2013 个 1800 字符的分块。"
@@ -367,5 +404,5 @@
     }
   ],
   "schema": "sagaai.marketplace.index/1",
-  "updated_at": "2026-11-08T08:33:50Z"
+  "updated_at": "2026-11-12T08:03:33Z"
 }
